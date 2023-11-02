@@ -168,17 +168,17 @@ def right_click_handler(event, i, j):
     draw_board()
 
 
-def double_click_handler(event, i, j):
-    print("entered")
-    neighbors = neighbour_create(i, j)
-    total_flag = 0
-    for n in neighbors:
-        if matrix[n[0]][n[1]][2]:
-            total_flag += 1
-    if total_flag == matrix[i][j][0]:
-        for n in neighbors:
-            matrix[n[0]][n[1]][1] = True
-    draw_board()
+#def double_click_handler(event, i, j):
+#    print("entered")
+#    neighbors = neighbour_create(i, j)
+#    total_flag = 0
+#    for n in neighbors:
+#        if matrix[n[0]][n[1]][2]:
+#            total_flag += 1
+#    if total_flag == matrix[i][j][0]:
+#        for n in neighbors:
+#            matrix[n[0]][n[1]][1] = True
+#    draw_board()
 
 
 def draw_board():
@@ -243,11 +243,11 @@ def draw_board():
                 color = color_mapping.get(value, 'black')
                 label = tk.Label(root, text=str(value), width=4, height=2, relief=tk.RIDGE, fg=color, bg='grey60')
 
-            double_click_lambda = lambda event, i=x, j=y: double_click_handler(event, i, j)
+            #double_click_lambda = lambda event, i=x, j=y: double_click_handler(event, i, j)
             click_lambda = lambda event, i=x, j=y: click_handler(event, i, j)
             right_click_lambda = lambda event, i=x, j=y: right_click_handler(event, i, j)
 
-            label.bind("<Double-1>", double_click_lambda)
+            #label.bind("<Double-1>", double_click_lambda)
             label.bind("<Button-1>", click_lambda)
             label.bind("<Button-2>", right_click_lambda)
 
