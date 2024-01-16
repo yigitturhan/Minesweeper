@@ -6,6 +6,17 @@ game_over, win = False, False
 matrix = []
 count, remaining_mines = 0, 0
 root, game_over_window, win_game_window = None, None, None
+color_mapping = {
+    1: 'blue',
+    2: 'green',
+    3: 'brown',
+    4: 'purple',
+    5: 'red',
+    6: 'cyan',
+    7: 'orange',
+    8: 'black'
+}
+bg_color = 'grey81'
 
 
 def neighbour_create(x, y):
@@ -15,13 +26,7 @@ def neighbour_create(x, y):
 
 def reset_data():
     global game_over, win, matrix, count, game_over_window, remaining_mines, root
-    game_over = False
-    win = False
-    matrix = []
-    count = 0
-    root = None
-    game_over_window = None
-    remaining_mines = 0
+    game_over, win, matrix, count, root, game_over_window, remaining_mines = False, False, [], 0, None, None, 0
 
 
 def start_page(game):
@@ -98,8 +103,7 @@ def is_mine(i, j):
 
 def open_consecutive_zeros(lst, lst2):
     global matrix
-    cols = len(matrix[0])
-    rows = len(matrix)
+    cols, rows = len(matrix[0]), len(matrix)
     if len(lst) == 0:
         return matrix
     for p in lst:
@@ -124,35 +128,53 @@ def open_consecutive_zeros(lst, lst2):
 
 def is_finished():
     global matrix
-    finished = True
     for i in matrix:
         for j in i:
             if j[0] != 9 and (not j[1]):
-                finished = False
-                break
-    return finished
+                return False
+    return True
 
 
-def click_handler(event, i, j, ):
-    global matrix, count, remaining_mines
+def click_handler(event, i, j):
+    global matrix, count, remaining_mines, game_over
     if matrix[i][j][2]:
         return
-    matrix[i][j][1] = True
-    if is_mine(i, j):
-        if count == 0:
-            matrix[i][j][2] = not matrix[i][j][2]
-            remaining_mines -= 1
-        else:
-            global game_over
-            game_over = True
-    count += 1
-    if matrix[i][j][0] == 0:
-        matrix = open_consecutive_zeros([(i, j)], [])
-    if is_finished():
+    print(matrix[i][j][1])
+    if matrix[i][j][1]:
+        open_surroundings(i, j)
+    else:
         matrix[i][j][1] = True
-        win_game()
-        return
+        if is_mine(i, j):
+            if count == 0:
+                matrix[i][j][2] = not matrix[i][j][2]
+                remaining_mines -= 1
+            else:
+                game_over = True
+        count += 1
+        if matrix[i][j][0] == 0:
+            matrix = open_consecutive_zeros([(i, j)], [])
+        if is_finished():
+            matrix[i][j][1] = True
+            win_game()
+            return
     draw_board()
+
+
+def open_surroundings(i, j):
+    global matrix
+    count = 0
+    for x in range(i - 1, i + 2):
+        for y in range(j - 1, j + 2):
+            if x < 0 or x >= len(matrix) or y < 0 or y >= len(matrix[0]):
+                continue
+            if matrix[x][y][0] == 9 and matrix[x][y][2]:
+                count += 1
+    if count == matrix[i][j][0]:
+        for x in range(i - 1, i + 2):
+            for y in range(j - 1, j + 2):
+                if x < 0 or x >= len(matrix) or y < 0 or y >= len(matrix[0]):
+                    continue
+                matrix[x][y][1] = True
 
 
 def right_click_handler(event, i, j):
@@ -168,38 +190,13 @@ def right_click_handler(event, i, j):
     draw_board()
 
 
-#def double_click_handler(event, i, j):
-#    print("entered")
-#    neighbors = neighbour_create(i, j)
-#    total_flag = 0
-#    for n in neighbors:
-#        if matrix[n[0]][n[1]][2]:
-#            total_flag += 1
-#    if total_flag == matrix[i][j][0]:
-#        for n in neighbors:
-#            matrix[n[0]][n[1]][1] = True
-#    draw_board()
-
-
 def draw_board():
     global game_over, win, matrix, remaining_mines, root
     if not root:
         root = tk.Tk()
     for widget in root.winfo_children():
         widget.destroy()
-    rows = len(matrix)
-    cols = len(matrix[0])
-    color_mapping = {
-        1: 'blue',
-        2: 'green',
-        3: 'brown',
-        4: 'purple',
-        5: 'red',
-        6: 'cyan',
-        7: 'orange',
-        8: 'black'
-    }
-    bg_color = 'grey81'
+    rows, cols = len(matrix), len(matrix[0])
     remaining_mines_label = tk.Label(root, text=f"Remaining Mines: {remaining_mines}", bg='grey60')
     remaining_mines_label.grid(row=0, column=0, columnspan=cols)
     if game_over:
@@ -242,15 +239,10 @@ def draw_board():
             else:
                 color = color_mapping.get(value, 'black')
                 label = tk.Label(root, text=str(value), width=4, height=2, relief=tk.RIDGE, fg=color, bg='grey60')
-
-            #double_click_lambda = lambda event, i=x, j=y: double_click_handler(event, i, j)
             click_lambda = lambda event, i=x, j=y: click_handler(event, i, j)
             right_click_lambda = lambda event, i=x, j=y: right_click_handler(event, i, j)
-
-            #label.bind("<Double-1>", double_click_lambda)
             label.bind("<Button-1>", click_lambda)
             label.bind("<Button-2>", right_click_lambda)
-
             label.grid(row=x + 1, column=y)
     root.mainloop()
 
@@ -272,8 +264,7 @@ def create_board(rows, cols, num_mines):
 def open_board():
     for i in matrix:
         for j in i:
-            j[2] = False
-            j[1] = True
+            j[2], j[1] = False, True
 
 
 start_page(game_over_window)
